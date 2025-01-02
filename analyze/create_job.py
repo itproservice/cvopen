@@ -1,4 +1,3 @@
-import os
 import uuid
 from models.job import Job
 from database import AnalyzeDatabase
@@ -7,13 +6,6 @@ from textwrap import dedent
 
 # Configuração de logging
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
-
-# Define o caminho para o arquivo de banco de dados na raiz da pasta 'analyze'
-current_dir = os.path.dirname(__file__)  # Diretório atual onde o script está localizado
-db_path = os.path.join(current_dir, "db.json")  # Arquivo db.json na pasta 'analyze'
-
-# Inicializa o banco de dados
-database = AnalyzeDatabase(file_path=db_path)
 
 def create_job(database: AnalyzeDatabase, name: str, activities: str, prerequisites: str, differentials: str):
     """
@@ -49,7 +41,11 @@ def create_job(database: AnalyzeDatabase, name: str, activities: str, prerequisi
         logging.error("Erro ao criar ou inserir a vaga no banco de dados.", exc_info=True)
         raise e
 
+
 if __name__ == "__main__":
+    # Instância do banco de dados
+    database = AnalyzeDatabase()
+
     # Informações da vaga
     name = "Vaga de Assessor Legislativo"
 
