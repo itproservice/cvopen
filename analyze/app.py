@@ -10,6 +10,14 @@ database = AnalyzeDatabase()
 # Configura a página do Streamlit com layout largo e título "Recrutador"
 st.set_page_config(layout="wide", page_title="Recrutador", page_icon=":brain:")
 
+# Funções auxiliares para executar scripts
+def run_script(script_name):
+    try:
+        os.system(f"python {script_name}")
+        st.success(f"Script '{script_name}' executado com sucesso.")
+    except Exception as e:
+        st.error(f"Erro ao executar o script '{script_name}': {e}")
+
 # Cria um menu de seleção para escolher uma vaga disponível na base de dados
 option = st.selectbox(
     "Escolha sua vaga:",
@@ -19,6 +27,14 @@ option = st.selectbox(
 
 # Inicializa a variável `data`
 data = None
+
+# Botões para atualizar arquivos e executar análise
+st.sidebar.header("Operações")
+if st.sidebar.button("Atualizar Arquivos"):
+    run_script("analyze/drive/downloads.py")
+
+if st.sidebar.button("Analisar"):
+    run_script("analise.py")
 
 # Verifica se uma vaga foi selecionada
 if option:
@@ -70,7 +86,7 @@ if option:
 
     # Exibe um gráfico de barras com as pontuações dos candidatos
     st.subheader('Classificação dos Candidatos')
-    st.bar_chart(df, x="Nome", y="Score", color="Nome", horizontal=True)
+    st.bar_chart(df, x="Nome", y="Score")
 
     # Exibe a tabela interativa usando AgGrid
     response = AgGrid(
