@@ -15,7 +15,8 @@ if "selected_job" not in st.session_state:
     st.session_state["selected_job"] = None
 
 # Obtém as vagas do banco de dados
-jobs = database.jobs.all()
+jobs_data = database.jobs.all()
+jobs = list(jobs_data[0].values()) if jobs_data else []  # Converte o dicionário 'jobs' em lista de valores
 print("Vagas carregadas:", jobs)  # Para depuração
 
 # Verifica se a lista está vazia
