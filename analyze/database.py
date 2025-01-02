@@ -1,56 +1,38 @@
 from tinydb import TinyDB, Query
 
-class AnalyzeDatabase(TinyDB):
-    def __init__(self, file_path='db.json') -> None:
-        # Inicializar o banco de dados TinyDB com o arquivo especificado
-        # Criar tabelas para armazenar vagas, resumos de currículos, análises e arquivos
-        super().__init__(file_path)
-        self.jobs = self.table('jobs')
-        self.resums = self.table('resums')
-        self.analysis = self.table('analysis')
-        self.files = self.table('files')
+class AnalyzeDatabase:
+    def __init__(self, file_path='db.json'):
+        self.db = TinyDB(file_path)
+        self.jobs = self.db.table('jobs')  # Tabela de vagas
+        self.resums = self.db.table('resums')  # Tabela de currículos
+        self.analysis = self.db.table('analysis')  # Tabela de análises
+        self.files = self.db.table('files')  # Tabela de arquivos
+
+    def get_jobs(self):
+        # Retorna os valores do dicionário de vagas
+        jobs_data = self.jobs.all()
+        if jobs_data:
+            return list(jobs_data[0].values())
+        return []
 
     def get_job_by_name(self, name):
-        # Buscar uma vaga pelo nome no banco de dados e retornar o primeiro resultado encontrado
-        job = Query()
-        result = self.jobs.search(job.name == name)
-        return result[0] if result else None
-    
-    def get_resum_by_id(self, id):
-        # Buscar um resumo de currículo específico pelo ID do resumo
-        resum = Query()
-        result = self.resums.search(resum.id == id)
-        return result[0] if result else None
+        # Busca uma vaga pelo nome
+        jobs_data = self.get_jobs()
+        for job in jobs_data:
+            if job.get('name') == name:
+                return job
+        return None
 
-    def get_analysis_by_job_id(self, job_id):
-        # Buscar todas as análises associadas a um ID de vaga específico
-        analysis = Query()
-        result = self.analysis.search(analysis.job_id == job_id)
-        return result
+    def add_job(self, job_data):
+        # Adiciona uma nova vaga ao banco de dados
+        existing_jobs = self.jobs.all()
+        if existing_jobs:
+            jobs_dict = existing_jobs[0]  # TinyDB retorna os dados em uma lista
+        else:
+            jobs_dict = {}
 
-    def get_resums_by_job_id(self, job_id):
-        # Buscar todos os resumos de currículos associados a um ID de vaga específico
-        resum = Query()
-        result = self.resums.search(resum.job_id == job_id)
-        return result
-    
-    def get_resum_by_file(self, file):
-        # Buscar um resumo de currículo específico pelo caminho do arquivo
-        resum = Query()
-        result = self.resums.search(resum.file == file)
-        return result[0] if result else None
+        job_id = job_data.get('id')
+        jobs_dict[job_id] = job_data
 
-    def delete_all_resums_by_job_id(self, job_id):
-        # Remover todos os resumos de currículos associados a um ID de vaga específico
-        resum = Query()
-        self.resums.remove(resum.job_id == job_id)
-
-    def delete_all_analysis_by_job_id(self, job_id):
-        # Remover todas as análises associadas a um ID de vaga específico
-        analysis = Query()
-        self.analysis.remove(analysis.job_id == job_id)
-
-    def delete_all_files_by_job_id(self, job_id):
-        # Remover todas as análises associadas a um ID de vaga específico
-        file = Query()
-        self.analysis.remove(file.job_id == job_id)
+        self.jobs.truncate()  # Remove os dados antigos
+        self.jobs.insert(jobs_dict)  # Insere o dicionário atualizado
