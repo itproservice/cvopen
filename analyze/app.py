@@ -10,12 +10,28 @@ database = AnalyzeDatabase()
 # Configura a página do Streamlit com layout largo e título "Recrutador"
 st.set_page_config(layout="wide", page_title="Recrutador", page_icon=":brain:")
 
+# Inicializa o estado para seleção de vaga
+if "selected_job" not in st.session_state:
+    st.session_state["selected_job"] = None
+
+# Obtém as vagas do banco de dados
+jobs = database.jobs.all()
+
+# Verifica se a lista está vazia
+if not jobs:
+    jobs = [{"name": "Nenhuma vaga disponível"}]
+
 # Cria um menu de seleção para escolher uma vaga disponível na base de dados
 option = st.selectbox(
     "Escolha sua vaga:",
-    [job.get('name') for job in database.jobs.all()],
-    index=None
+    [job.get('name') for job in jobs],
+    index=0  # Define o primeiro item como padrão
 )
+
+# Interrompe a execução caso nenhuma vaga válida esteja disponível
+if option == "Nenhuma vaga disponível":
+    st.warning("Nenhuma vaga foi encontrada no banco de dados.")
+    st.stop()
 
 # Inicializa a variável `data`
 data = None
@@ -101,7 +117,7 @@ if option:
         database.delete_all_analysis_by_job_id(job.get('id'))  # Deleta todas as análises
         database.delete_all_files_by_job_id(job.get('id')) # Deleta todos os arquivos
         delete_files_resum(resums)  # Deleta os arquivos dos currículos
-        st.rerun()  # Recarrega a página
+        st.experimental_rerun()  # Recarrega a página
 
     # Exibe os currículos dos candidatos selecionados
     if not candidates_df.empty:
@@ -111,7 +127,7 @@ if option:
                 with st.container():
                     if resum_data := database.get_resum_by_id(row[1]['Resum ID']):
                         st.markdown(resum_data.get('content')) # Exibe o resumo do currículo
-                        st.markdown(resum_data.get('opnion')) # Exibe a opnião da IA sobre o curriculo
+                        st.markdown(resum_data.get('opnion')) # Exibe a opinião da IA sobre o currículo
 
                         # Exibe um botão para download do currículo em PDF
                         with open(resum_data.get('file'), "rb") as pdf_file:
