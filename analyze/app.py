@@ -16,6 +16,7 @@ if "selected_job" not in st.session_state:
 
 # Obtém as vagas do banco de dados
 jobs = database.jobs.all()
+print("Vagas carregadas:", jobs)  # Para depuração
 
 # Verifica se a lista está vazia
 if not jobs:
