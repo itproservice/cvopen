@@ -1,5 +1,6 @@
 import os
 import logging
+import subprocess
 from googleapiclient.discovery import build
 from googleapiclient.http import MediaIoBaseDownload
 from google.oauth2.credentials import Credentials
@@ -38,6 +39,28 @@ def download_file(service, file_id, file_name, download_path):
         logging.error(f"Erro ao baixar arquivo: {file_name}", exc_info=True)
         raise e
 
+# Função para atualizar o repositório no GitHub
+def update_github_repo():
+    try:
+        logging.info("Atualizando o repositório GitHub...")
+        # Caminho do repositório Git
+        repo_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", ".."))  # Ajuste conforme sua estrutura
+        os.chdir(repo_dir)  # Navegar até o diretório do repositório
+
+        # Comandos Git
+        subprocess.run(["git", "add", "-A"], check=True)
+        subprocess.run(["git", "commit", "-m", "Atualização de currículos"], check=True)
+        subprocess.run([
+            "git", "push",
+            f"https://{os.getenv('GITHUB_TOKEN')}@github.com/seu-usuario/seu-repositorio.git"
+        ], check=True)
+
+        logging.info("Repositório atualizado com sucesso!")
+    except subprocess.CalledProcessError as e:
+        logging.error(f"Erro ao atualizar o repositório: {e}")
+    except Exception as e:
+        logging.error(f"Erro inesperado: {e}")
+
 if __name__ == "__main__":
     TOKEN_PATH = "token.json"
     CREDENTIALS_PATH = os.path.join(os.path.dirname(__file__), "../credentials.json")
@@ -59,5 +82,8 @@ if __name__ == "__main__":
         else:
             for file in files:
                 download_file(service, file['id'], file['name'], DOWNLOAD_DIR)
+
+        # Atualizar repositório no GitHub
+        update_github_repo()
     except Exception as e:
         logging.critical("Erro crítico na execução do script", exc_info=True)
