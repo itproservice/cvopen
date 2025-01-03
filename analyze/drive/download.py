@@ -3,7 +3,6 @@ import logging
 import subprocess
 from googleapiclient.discovery import build
 from googleapiclient.http import MediaIoBaseDownload
-from google.oauth2.credentials import Credentials
 from authenticate import authenticate_drive  # Importando a função de autenticação
 
 # Configuração de logging
@@ -43,21 +42,24 @@ def download_file(service, file_id, file_name, download_path):
 def update_github_repo():
     try:
         logging.info("Atualizando o repositório GitHub...")
-        # Caminho do repositório Git
-        repo_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", ".."))  # Ajuste conforme sua estrutura
-        os.chdir(repo_dir)  # Navegar até o diretório do repositório
+        # Configuração do repositório
+        repo_url = os.getenv('github.com/itproservice/cvopen.git')  # URL do repositório
+        token = os.getenv('GITHUB_TOKEN')  # Token do GitHub
+        repo_path = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", ".."))
+
+        if not repo_url or not token:
+            raise ValueError("As variáveis de ambiente 'GITHUB_REPO_URL' e 'GITHUB_TOKEN' devem estar configuradas.")
+
+        os.chdir(repo_path)  # Navegar até o diretório do repositório
 
         # Comandos Git
         subprocess.run(["git", "add", "-A"], check=True)
-        subprocess.run(["git", "commit", "-m", "Atualização de currículos"], check=True)
-        subprocess.run([
-            "git", "push",
-            f"https://{os.getenv('GITHUB_TOKEN')}@github.com/seu-usuario/seu-repositorio.git"
-        ], check=True)
+        subprocess.run(["git", "commit", "-m", "Atualizando currículos"], check=True)
+        subprocess.run(["git", "push", f"https://{token}@{repo_url}"], check=True)
 
         logging.info("Repositório atualizado com sucesso!")
     except subprocess.CalledProcessError as e:
-        logging.error(f"Erro ao atualizar o repositório: {e}")
+        logging.error(f"Erro ao enviar para o GitHub: {e}")
     except Exception as e:
         logging.error(f"Erro inesperado: {e}")
 
